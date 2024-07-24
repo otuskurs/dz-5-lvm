@@ -1,0 +1,10 @@
+Выделить том под /home
+lvcreate -n LogVol_Home -L 2G /dev/vg_var
+mkfs.xfs /dev/vg_var/LogVol_Home
+mount /dev/vg_var/LogVol_Home /mnt/
+cp -aR /home/* /mnt/
+rm -rf /home/*
+umount /mnt
+mount /dev/vg_var/LogVol_Home /home/
+echo "`blkid | grep Home | awk '{print $2}'` \
+ /home xfs defaults 0 0" >> /etc/fstab

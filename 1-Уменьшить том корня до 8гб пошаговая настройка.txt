@@ -1,0 +1,90 @@
+План действий такой:
+
+1. Создаем временный раздел XFS на новом томе LVM. Переносим корневой раздел на временный том и загружаемся с него.
+2. Уменьшаем исходный том до нужного размера, возвращаем на него данные. Загружаемся с нового раздела.
+3. Удаляем временный том.
+
+Утилиты — установим их:
+yum install lvm2 xfsdump
+
+Подготовим временный раздел для корневого тома:
+pvcreate /dev/sdb
+vgcreate vg_tmp_root /dev/sdb
+lvcreate -n lv_tmp_root -l +100%FREE /dev/vg_tmp_root
+
+Создадим файловую систему XFS и смонтируем ее в каталог /mnt:
+mkfs.xfs /dev/vg_tmp_root/lv_tmp_root
+mount /dev/vg_tmp_root/lv_tmp_root /mnt
+
+Смотрим расположение корневого раздела командой:
+lvdisplay
+
+Находим среди результатов корневой раздел — нам нужен параметр LV Path.
+
+Сдампим содержимое текущего корневого раздела в наш временный:
+xfsdump -J - /dev/vg/root | xfsrestore -J - /mnt
+
+Заходим в окружение chroot нашего временного корня:
+for i in /proc/ /sys/ /dev/ /run/ /boot/; do mount --bind $i /mnt/$i; done
+chroot /mnt/
+
+Запишем новый загрузчик:
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+Обновляем образы загрузки:
+cd /boot ; for i in `ls initramfs-*img`; do dracut -v $i `echo $i|sed "s/initramfs-//g; s/.img//g"` --force; done
+Открываем конфигурационный файл grub:
+vi /boot/grub2/grub.cfg
+Меняем все значения, которые задействуют старый том lvm — в моем случае, все совпадения:
+lv=vg/root на lv=vg_tmp_root/lv_tmp_root
+
+Выходим из окружения chroot и перезагружаем компьютер:
+exit
+shutdown -r now
+
+мы должны загрузиться с временного раздела
+
+И так, у нас есть раздел, который нужно уменьшить и который теперь не примонтирован в качестве корня.
+
+Удаляем его логический том:
+lvremove /dev/vg/root
+
+Создаем новый логический том меньшего размера:
+lvcreate -n root -L 8G vg
+
+Создаем на нем файловую систему и монтируем его:
+mkfs.xfs /dev/vg/root
+mount /dev/vg/root /mnt
+
+Возвращаем обратно содержимое корня:
+xfsdump -J - /dev/vg_tmp_root/lv_tmp_root | xfsrestore -J - /mnt
+
+Заходим в окружение chroot нашего временного корня:
+for i in /proc/ /sys/ /dev/ /run/ /boot/; do mount --bind $i /mnt/$i; done
+chroot /mnt/
+
+Запишем новый загрузчик:
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+Обновляем образы загрузки:
+cd /boot ; for i in `ls initramfs-*img`; do dracut -v $i `echo $i|sed "s/initramfs-//g; s/.img//g"` --force; done
+
+Открываем конфигурационный файл grub:
+vi /boot/grub2/grub.cfg
+
+Проверяем все значения
+lv=vg/root - должно быть
+
+Выходим из окружения chroot и перезагружаем компьютер:
+exit
+shutdown -r now
+
+мы должны загрузиться с нашего уменьшенного раздела:
+lsblk
+
+Удаление временного тома
+Для порядка, вернем прежнее состояние без временного тома.
+Удаляем том, группу и снимаем lvm-метку с диска, который нами использовался как временный (sdb):
+lvremove /dev/vg_tmp_root/lv_tmp_root
+vgremove vg_tmp_root
+pvremove /dev/sdb

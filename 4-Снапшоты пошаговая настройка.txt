@@ -1,0 +1,17 @@
+Работа со снапшотами
+
+Генерируем файлы в /home/:
+touch /home/file{1..20}
+
+Снять снапшот:
+lvcreate -L 100MB -s -n home_snap  /dev/vg_var/LogVol_Home
+
+Удалить часть файлов:
+rm -f /home/file{11..20}
+
+
+процесс восстановления из снапшота:
+umount /home
+lvconvert --merge /dev/vg_var/home_snap
+mount /home
+ls -al /home

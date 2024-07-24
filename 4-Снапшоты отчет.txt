@@ -1,0 +1,72 @@
+[root@dz43 ~]# lvcreate -L 100MB -s -n home_snap  /dev/vg_var/LogVol_Home
+  Logical volume "home_snap" created.
+[root@dz43 ~]# ll /home/
+total 4
+-rw-r--r--. 1 root root 5 Jul 24 15:13 dd
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file1
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file10
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file11
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file12
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file13
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file14
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file15
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file16
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file17
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file18
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file19
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file2
+-rw-r--r--. 1 root root 0 Jul 24 15:22 file20
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file3
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file4
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file5
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file6
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file7
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file8
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file9
+[root@dz43 ~]# rm -f /home/file{11..20}
+[root@dz43 ~]# ll /home/
+total 4
+-rw-r--r--. 1 root root 5 Jul 24 15:13 dd
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file1
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file10
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file2
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file3
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file4
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file5
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file6
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file7
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file8
+-rw-r--r--. 1 root root 0 Jul 24 15:27 file9
+[root@dz43 ~]# umount /home
+[root@dz43 ~]# lvconvert --merge /dev/vg_var/home_snap
+  Merging of volume vg_var/home_snap started.
+  vg_var/LogVol_Home: Merged: 99.97%
+  vg_var/LogVol_Home: Merged: 100.00%
+[root@dz43 ~]# mount /home
+[root@dz43 ~]# ls -al /home
+total 4
+drwxr-xr-x.  2 root root 287 Jul 24 15:21 .
+drwxr-xr-x. 17 root root 224 Jul 24 12:32 ..
+-rw-r--r--.  1 root root   5 Jul 24 15:13 dd
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file1
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file10
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file11
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file12
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file13
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file14
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file15
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file16
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file17
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file18
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file19
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file2
+-rw-r--r--.  1 root root   0 Jul 24 15:22 file20
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file3
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file4
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file5
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file6
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file7
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file8
+-rw-r--r--.  1 root root   0 Jul 24 15:27 file9
+[root@dz43 ~]#
+
